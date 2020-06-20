@@ -6,6 +6,8 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.util.TreeSet;
+
 import de.uulm.sp.Zoo.animals.*;
 import de.uulm.sp.Zoo.containers.*;
 
@@ -63,7 +65,15 @@ public class Solutions {
 	 * @throws Exception
 	 */
 	public static String overlaps(String s) throws Exception {
-		// TODO
+		final var splittedInput = s.split(";");
+		if (2>splittedInput.length) {
+			throw new IllegalArgumentException("Provide intervals seperated by a semicolon");
+		}
+		final var intervals = new Interval[splittedInput.length];
+		for(int i = intervals.length - 1; 0 <= i ; i--) {
+			intervals[i] = new Interval(splittedInput[i]);
+		}
+		TreeSet<Integer> a = new TreeSet<Integer>();
 		return "";
 	}
 
