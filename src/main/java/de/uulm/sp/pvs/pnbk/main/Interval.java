@@ -1,5 +1,9 @@
 package de.uulm.sp.pvs.pnbk.main;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.regex.Pattern;
 
 public class Interval {
@@ -43,7 +47,8 @@ public class Interval {
 	}
 
 	/**
-	 * resets the Iterator. iterateNext() will then return the first value.
+	 * Initiates or resets the Iterator. iterateNext() will then return the first
+	 * value.
 	 */
 	final public void resetIterator() {
 		iterator = start - stepSize;
@@ -62,6 +67,15 @@ public class Interval {
 			iterator = null;
 		}
 		return iterator;
+	}
+
+	final public SortedSet<Integer> getAllSteps() {
+		final var out = new TreeSet<Integer>();
+		out.add(this.start);
+		for (int i = this.start + this.stepSize; i < this.end; i += this.stepSize) {
+			out.add(i);
+		}
+		return out;
 	}
 
 	@Override

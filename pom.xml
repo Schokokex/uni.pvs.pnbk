@@ -21,6 +21,13 @@
 
 	<dependencies>
 		<dependency>
+    		<groupId>de.uulm.sp.pvs</groupId>
+    		<artifactId>zoo</artifactId>
+    		<version>1.0</version>
+    		<scope>system</scope>
+    		<systemPath>${project.basedir}/resources/dependencies/Zoo-1.0-SNAPSHOT.jar</systemPath>
+		</dependency>
+		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>4.11</version>

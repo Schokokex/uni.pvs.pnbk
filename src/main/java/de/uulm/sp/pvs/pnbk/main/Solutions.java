@@ -6,6 +6,10 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Set;
+import java.util.SortedSet;
 import java.util.TreeSet;
 
 import de.uulm.sp.Zoo.animals.*;
@@ -58,22 +62,24 @@ public class Solutions {
 	 * output format: [overlap1, ...] whitespace is ignored in the output!!
 	 * 
 	 * sample: "(1,100,1);(0,100,2)" -> [all even numbers]
-	 * "(44,44,1);(40,50,2);(1,1,1)" -> "[1, 44]"
+	 * "(44,44,1);(40,50,2);(1,1,1)" -> "[44]"
 	 * 
 	 * @param s in input format
 	 * @return String in output format
 	 * @throws Exception
 	 */
 	public static String overlaps(String s) throws Exception {
-		final var splittedInput = s.split(";");
-		if (2>splittedInput.length) {
-			throw new IllegalArgumentException("Provide intervals seperated by a semicolon");
+		/*
+		 * 1. create string array with (#,#,#) 2. create step list for each interval 3.
+		 * create mega list (sorted set) 4. iterate over mega list and find duplicates
+		 */
+		final var intervalStrings = s.split(";");
+		final var intervalValues = new SortedSet[intervalStrings.length];
+		for (var i = 0; i <= intervalStrings.length; i++) {
+			intervalValues[i] = new Interval(intervalStrings[i]).getAllSteps();
 		}
-		final var intervals = new Interval[splittedInput.length];
-		for(int i = intervals.length - 1; 0 <= i ; i--) {
-			intervals[i] = new Interval(splittedInput[i]);
-		}
-		TreeSet<Integer> a = new TreeSet<Integer>();
+		final var out = new TreeSet<Integer>();
+
 		return "";
 	}
 
@@ -97,7 +103,10 @@ public class Solutions {
 	 * @throws Exception
 	 */
 	public static String lightenUp(String s) throws Exception {
-		// TODO
+		/*
+		 * 1. find light sources 2. lighten up inner circle (if not wall) 3. lighten up
+		 * outer circle if not obstructed and not wall
+		 */
 		return "";
 	}
 
@@ -127,8 +136,38 @@ public class Solutions {
 	 */
 	public static String socialDistancing(String p1Start, String p2Start, String p1End, String p2End, int maxHops)
 			throws Exception {
-		// TODO
-		return "";
+		final var rome = new Airport("Rome");
+		final var vienna = new Airport("Wien");
+		final var brussels = new Airport("Brüssel");
+		final var paris = new Airport("Paris");
+		final var frankfurt = new Airport("Frankfurt");
+		final var london = new Airport("London");
+		final var berlin = new Airport("Berlin");
+		final var warsaw = new Airport("Warschau");
+		final var moscow = new Airport("Moskau");
+		final var munich = new Airport("München");
+		final var stuttgart = new Airport("Stuttgart");
+
+		rome.addDestinations(vienna);
+		vienna.addDestinations(brussels);
+		brussels.addDestinations(vienna, frankfurt);
+		paris.addDestinations(brussels);
+		frankfurt.addDestinations(paris, vienna, stuttgart, munich, berlin, london);
+		london.addDestinations(/* none */);
+		berlin.addDestinations(frankfurt, stuttgart, munich, warsaw);
+		warsaw.addDestinations(berlin, moscow);
+		moscow.addDestinations(munich);
+		munich.addDestinations(warsaw, berlin, frankfurt, stuttgart);
+		stuttgart.addDestinations(munich, berlin, frankfurt, rome);
+
+		final var allRoutes1 = Airport.getAllRoutes(p1Start, p1End, maxHops);
+		final var allRoutes2 = Airport.getAllRoutes(p2Start, p2End, maxHops);
+
+		var out = "";
+		
+		//TODO for each each: if keine Kreuzung, zum String hinzufügen
+		
+		return out;
 	}
 
 	/**
