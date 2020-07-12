@@ -6,17 +6,20 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import de.uulm.sp.Zoo.animals.*;
 import de.uulm.sp.Zoo.containers.*;
+import de.uulm.sp.pvs.pnbk.main.airports.Graph;
+import de.uulm.sp.pvs.pnbk.main.airports.Route;
+import de.uulm.sp.pvs.pnbk.main.candles.CandleBoard;
+import de.uulm.sp.pvs.pnbk.main.intervals.Interval;
+import de.uulm.sp.pvs.pnbk.main.zoo.PvSON;
 
 public class Solutions {
-
 	// @formatter:off
 
 	/**
@@ -70,17 +73,24 @@ public class Solutions {
 	 */
 	public static String overlaps(String s) throws Exception {
 		/*
-		 * 1. create string array with (#,#,#) 2. create step list for each interval 3.
-		 * create mega list (sorted set) 4. iterate over mega list and find duplicates
+		 * create Interval Objects that are iterable. Iterate through Intervals. Use a
+		 * duplicate list and alreadyUsed list, save duplicates and return as String.
+		 * 
 		 */
 		final var intervalStrings = s.split(";");
-		final var intervalValues = new SortedSet[intervalStrings.length];
-		for (var i = 0; i <= intervalStrings.length; i++) {
-			intervalValues[i] = new Interval(intervalStrings[i]).getAllSteps();
+		final var alreadyUsed = new TreeSet<Integer>();
+		final SortedSet<Integer> duplicates = new TreeSet<Integer>();
+		for (var i = 0; i < intervalStrings.length; i++) {
+			final var interval = new Interval(intervalStrings[i]);
+			for (final Integer step : interval) {
+				if (alreadyUsed.contains(step)) {
+					duplicates.add(step);
+				} else {
+					alreadyUsed.add(step);
+				}
+			}
 		}
-		final var out = new TreeSet<Integer>();
-
-		return "";
+		return duplicates.toString();
 	}
 
 	/**
@@ -103,11 +113,8 @@ public class Solutions {
 	 * @throws Exception
 	 */
 	public static String lightenUp(String s) throws Exception {
-		/*
-		 * 1. find light sources 2. lighten up inner circle (if not wall) 3. lighten up
-		 * outer circle if not obstructed and not wall
-		 */
-		return "";
+		final var board = new CandleBoard(s);
+		return board.toString();
 	}
 
 	/**
@@ -136,37 +143,37 @@ public class Solutions {
 	 */
 	public static String socialDistancing(String p1Start, String p2Start, String p1End, String p2End, int maxHops)
 			throws Exception {
-		final var rome = new Airport("Rome");
-		final var vienna = new Airport("Wien");
-		final var brussels = new Airport("Brüssel");
-		final var paris = new Airport("Paris");
-		final var frankfurt = new Airport("Frankfurt");
-		final var london = new Airport("London");
-		final var berlin = new Airport("Berlin");
-		final var warsaw = new Airport("Warschau");
-		final var moscow = new Airport("Moskau");
-		final var munich = new Airport("München");
-		final var stuttgart = new Airport("Stuttgart");
+		final var graphAgain = new Graph<String>("Rom");
+		
+		graphAgain.addDirections("Rom",new String[] {"Wien"});
+		graphAgain.addDirections("Wien",new String[] {"Brüssel","Frankfurt"});
+		graphAgain.addDirections("Brüssel",new String[] {"Frankfurt","Wien"});
+		graphAgain.addDirections("Paris",new String[] {"Brüssel"});
+		graphAgain.addDirections("Frankfurt",new String[] {"Paris", "Wien", "Stuttgart", "München", "Berlin", "London"});
+		graphAgain.addDirections("Berlin",new String[] {"Frankfurt", "Stuttgart", "München", "Warschau"});
+		graphAgain.addDirections("Warschau",new String[] {"Berlin", "Moskau"});
+		graphAgain.addDirections("Moskau",new String[] {"München"});
+		graphAgain.addDirections("München",new String[] {"Warschau", "Berlin", "Frankfurt", "Stuttgart"});
+		graphAgain.addDirections("Stuttgart",new String[] {"München", "Berlin", "Frankfurt", "Rom"});
 
-		rome.addDestinations(vienna);
-		vienna.addDestinations(brussels);
-		brussels.addDestinations(vienna, frankfurt);
-		paris.addDestinations(brussels);
-		frankfurt.addDestinations(paris, vienna, stuttgart, munich, berlin, london);
-		london.addDestinations(/* none */);
-		berlin.addDestinations(frankfurt, stuttgart, munich, warsaw);
-		warsaw.addDestinations(berlin, moscow);
-		moscow.addDestinations(munich);
-		munich.addDestinations(warsaw, berlin, frankfurt, stuttgart);
-		stuttgart.addDestinations(munich, berlin, frankfurt, rome);
-
-		final var allRoutes1 = Airport.getAllRoutes(p1Start, p1End, maxHops);
-		final var allRoutes2 = Airport.getAllRoutes(p2Start, p2End, maxHops);
-
+		final var routes1 = graphAgain.getAllRoutes(p1Start, p1End, maxHops);
+		final var routes2 = graphAgain.getAllRoutes(p2Start, p2End, maxHops);
+		
 		var out = "";
 		
-		//TODO for each each: if keine Kreuzung, zum String hinzufügen
-		
+		for (Route<String> route1 : routes1) {
+			for (Route<String> route2 : routes2) {
+				
+				if (!route1.intersects(route2)) {
+					out += "(";
+					out += String.join("->", route1);
+					out += ", ";
+					out += String.join("->", route2);
+					out +=")";
+				}
+				
+			}
+		}
 		return out;
 	}
 
@@ -180,7 +187,13 @@ public class Solutions {
 	 * @throws Exception
 	 */
 	public static void jsonifyAnimal(ObjectInputStream in, OutputStream out) throws Exception {
-		// TODO
+		final var inObject = in.readObject();
+		if (!(inObject instanceof Animal)) {
+			throw new IllegalArgumentException();
+		} else {
+			final var animal = (Animal) inObject;
+			out.write(new PvSON("Animal").animalToPvSON(animal).getBytes());
+		}
 	}
 
 	/**
@@ -193,7 +206,9 @@ public class Solutions {
 	 * @throws Exception
 	 */
 	public static void deJsonifyPenguin(InputStream in, ObjectOutputStream out) throws Exception {
-		// TODO
+		final var inString = new String(in.readAllBytes());
+		final var penguin = new Gson().fromJson(inString, Penguin.class);
+		out.writeObject(penguin);
 	}
 
 	/**
@@ -206,7 +221,13 @@ public class Solutions {
 	 * @throws Exception
 	 */
 	public static void jsonifyZoo(ObjectInputStream in, OutputStream out) throws Exception {
-		// TODO
+		final var inObject = in.readObject();
+		if (!(inObject instanceof Zoo)) {
+			throw new IllegalArgumentException();
+		} else {
+			final var zoo = (Zoo) inObject;
+			out.write(new PvSON("Zoo").zooToPvSON(zoo).getBytes());
+		}
 	}
 
 	/**
@@ -219,7 +240,10 @@ public class Solutions {
 	 * @throws Exception
 	 */
 	public static void deJsonifyZoo(InputStream in, ObjectOutputStream out) throws Exception {
-		// TODO
+		final var gson = new GsonBuilder().registerTypeAdapter(Animal.class, new AnimalDeserializer()).create();
+		final var inString = new String(in.readAllBytes());
+		final var zoo = gson.fromJson(inString, Zoo.class);
+		out.writeObject(zoo);
 	}
 
 }

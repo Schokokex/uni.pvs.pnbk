@@ -1,16 +1,12 @@
-package de.uulm.sp.pvs.pnbk.main;
+package de.uulm.sp.pvs.pnbk.main.intervals;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.Iterator;
 import java.util.regex.Pattern;
 
-public class Interval {
+public class Interval implements Iterable<Integer> {
 	final private int start;
 	final private int end;
 	final private int stepSize;
-	private Integer iterator;
 
 	/**
 	 * (10,20,0) invalid
@@ -26,7 +22,7 @@ public class Interval {
 	 *                                  numbers
 	 */
 	public Interval(String intervalString) throws IllegalArgumentException {
-		final var pattern = Pattern.compile("\\((\\d+),(\\d+),(\\d+\\))");
+		final var pattern = Pattern.compile("\\((\\d+),(\\d+),(\\d+)\\)");
 		final var matcher = pattern.matcher(intervalString);
 		if (!matcher.find()) {
 			throw new IllegalArgumentException("Interval doesnt match (#,#,#)");
@@ -43,44 +39,46 @@ public class Interval {
 			throw new IllegalArgumentException("Step size must not be 0");
 		}
 
-		resetIterator();
-	}
-
-	/**
-	 * Initiates or resets the Iterator. iterateNext() will then return the first
-	 * value.
-	 */
-	final public void resetIterator() {
-		iterator = start - stepSize;
-	}
-
-	/**
-	 * 
-	 * @return Next found integer or Null
-	 */
-	final public Integer iterateNext() {
-		if (null == iterator) {
-			return null;
-		}
-		iterator += stepSize;
-		if (end < iterator) {
-			iterator = null;
-		}
-		return iterator;
-	}
-
-	final public SortedSet<Integer> getAllSteps() {
-		final var out = new TreeSet<Integer>();
-		out.add(this.start);
-		for (int i = this.start + this.stepSize; i < this.end; i += this.stepSize) {
-			out.add(i);
-		}
-		return out;
 	}
 
 	@Override
 	final public String toString() {
 		return String.format("(%d,%d,%d)", start, end, stepSize);
+	}
+
+	@Override
+	public Iterator<Integer> iterator() {
+		return new Iterator<Integer>() {
+			private Integer iterator = null;
+
+			@Override
+			public boolean hasNext() {
+				if (null == iterator && start<=end) {
+					return true;
+				}
+				if (0 == stepSize) {
+					return false;
+				}
+				if ((iterator + stepSize) > end) {
+					return false;
+				}
+				return true;
+			}
+
+			@Override
+			public Integer next() {
+				if (null == iterator) {
+					iterator = start;
+				} else {
+					iterator += stepSize;
+				}
+				if (iterator > end) {
+					iterator = null;
+				}
+
+				return iterator;
+			}
+		};
 	}
 
 }
